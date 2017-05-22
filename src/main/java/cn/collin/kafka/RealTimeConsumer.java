@@ -1,8 +1,6 @@
-package kafka;
+package cn.collin.kafka;
 
 import cn.collin.webServer.VertxWeb;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
 import kafka.utils.ShutdownableThread;
 import net.sf.json.JSONObject;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -16,16 +14,17 @@ import java.util.List;
 import java.util.Properties;
 
 /**
- * Created by collin on 17-5-4.
+ * Created by collin on 17-5-13.
  */
-public class Consumer extends ShutdownableThread{
-
+public class RealTimeConsumer extends ShutdownableThread{
     private final KafkaConsumer<String, String > consumer;
     private final String topic;
-    private String indexData = "";
+    private JSONObject indexData = new JSONObject();
+    private JSONObject transData = new JSONObject();
+    public static JSONObject realTimeData = new JSONObject();
     private TopicPartition topicPartition = new TopicPartition(KafkaProperties.TOPIC, 0);
 
-    public Consumer(String topic) {
+    public RealTimeConsumer(String topic, String transData) {
         super("KafkaConsumerExample", false);
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaProperties.KAFKA_SERVER_URL + ":" + KafkaProperties.KAFKA_SERVER_PORT);
@@ -35,7 +34,7 @@ public class Consumer extends ShutdownableThread{
         props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "30000");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-
+        this.transData = JSONObject.fromObject(transData);
         consumer = new KafkaConsumer<String, String>(props);
         this.topic = topic;
     }
@@ -53,24 +52,21 @@ public class Consumer extends ShutdownableThread{
         consumer.close();
         for (int i=0; i<list.size()-1; i++){
             for (int j=i+1; j<list.size(); j++){
-                if (list.get(i).key().equals(list.get(j).key())){
+                if (list.get(i).key().equals(list.get(j).key())) {
                     String serverId1 = getServerId(list.get(i).value());
                     String serverId2 = getServerId(list.get(j).value());
-                    if (serverId1.equals(serverId2)){
+                    if (serverId1.equals(serverId2)) {
 //                        System.out.println("success");
-                        this.indexData = composeIndex(list.get(i).value(), list.get(j).value());
-                        System.out.println("indexData:"+indexData);
-                        createESIndex(indexData);
-                        System.out.println(indexData);
-                    } else {
-                        this.indexData = "lost data";
+                        indexData = composeIndex(list.get(i).value(), list.get(j).value());
+                        realTimeData.put(i + "", indexData);
+                        System.out.println("indexData:" + indexData);
+//                        createESIndex(indexData);
                     }
-                } else {
-                    indexData = "lost data";
                 }
             }
 
         }
+
 
     }
 
@@ -79,21 +75,23 @@ public class Consumer extends ShutdownableThread{
         return serverId;
     }
 
-    public String composeIndex (String val1, String val2){
+    public JSONObject composeIndex (String val1, String val2){
 
         String serverId = getServerId(val1);
         String invokeId = JSONObject.fromObject(val2).getString("invokeId");
 //        String dataType = JSONObject.fromObject(val)
         String startTime = JSONObject.fromObject(val1).getString("timestamp");
         String endTime = JSONObject.fromObject(val2).getString("timestamp");
+        Long interval = Long.parseLong(startTime) - Long.parseLong(endTime);
         String result = JSONObject.fromObject(val2).getString("result");
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("serverId", serverId);
-        jsonObject.put("invokeId", invokeId);
+        /*jsonObject.put("serverId", serverId);
+        jsonObject.put("invokeId", invokeId);*/
         jsonObject.put("startTime", startTime);
-        jsonObject.put("endTime", endTime);
+        jsonObject.put("interval", interval);
+        /*jsonObject.put("endTime", endTime);*/
         jsonObject.put("result", result);
-        return jsonObject.toString();
+        return jsonObject;
     }
 
     /*public String consumeData (){
@@ -101,14 +99,15 @@ public class Consumer extends ShutdownableThread{
         return indexData;
     }*/
 
-    public void createESIndex (String data) {
+    public void dataHandler (JSONObject indexData) {
+
 //        Vertx vertx = Vertx.vertx();
-        VertxWeb.vertx.createHttpClient().post(9200, "localhost", "/chain/code", resp -> {
+        /*VertxWeb.vertx.createHttpClient().post(9200, "localhost", "/chain/code", resp -> {
             System.out.println("Got response " + resp.statusCode());
             resp.bodyHandler(body -> {
                 System.out.println("Got data " + body.toString("utf-8"));
             });
-        }).end(data);
+        }).end(data);*/
     }
 
     @Override

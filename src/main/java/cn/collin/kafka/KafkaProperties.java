@@ -1,4 +1,4 @@
-package kafka;
+package cn.collin.kafka;
 
 /**
  * Created by collin on 17-5-4.
