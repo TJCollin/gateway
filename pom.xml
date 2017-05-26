@@ -19,6 +19,12 @@
             <artifactId>vertx-core</artifactId>
             <version>3.4.1</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.1.1</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka_2.11 -->
         <dependency>
             <groupId>org.apache.kafka</groupId>

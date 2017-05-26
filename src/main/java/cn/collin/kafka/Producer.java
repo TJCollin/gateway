@@ -19,9 +19,9 @@ public class Producer extends Thread{
 //    private String messageKey;
 
     //0 represents the begin message, 1 represents the end message
-    private Long messageKey;
+    private String messageKey;
 
-    public Producer(String topic, Boolean isAsync, String messageStr, Long messageKey){
+    public Producer(String topic, Boolean isAsync, String messageStr, String messageKey){
         Properties props = new Properties();
         props.put("bootstrap.servers", KafkaProperties.KAFKA_SERVER_URL + ":" + KafkaProperties.KAFKA_SERVER_PORT);
         props.put("client.id", "DemoProducer");
@@ -40,11 +40,11 @@ public class Producer extends Thread{
 //            String messageStr = "Message_"+messageNo;
             long startTime = System.currentTimeMillis();
             if (isAsync){
-                producer.send(new ProducerRecord<String, String>(topic,messageKey+"",messageStr), new DemoCallBack(startTime, messageKey+"", messageStr));
+                producer.send(new ProducerRecord<String, String>(topic,messageKey,messageStr), new DemoCallBack(startTime, messageKey, messageStr));
                 producer.close();
             } else {
                 try {
-                    producer.send(new ProducerRecord<String, String>(topic, messageKey+"", messageStr)).get();
+                    producer.send(new ProducerRecord<String, String>(topic, messageKey, messageStr)).get();
                     System.out.println("Sent message: (" + messageKey + ", " + messageStr + ")");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -67,12 +67,12 @@ public class Producer extends Thread{
         }
 
         public void onCompletion(RecordMetadata recordMetadata, Exception e) {
-            long elapsedTime = System.currentTimeMillis() - startTime;
+            /*long elapsedTime = System.currentTimeMillis() - startTime;
             if (recordMetadata != null) {
                 System.out.println("message(" + key + ", " + message + ") sent to partition(" + recordMetadata.partition() +
                         "), " +
                         "offset(" + recordMetadata.offset() + ") in " + elapsedTime + " ms");
-            }
+            }*/
         }
     }
 }
