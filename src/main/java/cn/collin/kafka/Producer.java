@@ -45,7 +45,7 @@ public class Producer extends Thread{
             } else {
                 try {
                     producer.send(new ProducerRecord<String, String>(topic, messageKey, messageStr)).get();
-                    System.out.println("Sent message: (" + messageKey + ", " + messageStr + ")");
+//                    System.out.println("Sent message: (" + messageKey + ", " + messageStr + ")");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (ExecutionException e) {

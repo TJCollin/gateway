@@ -88,12 +88,12 @@ public class VertxWeb extends AbstractVerticle{
 //        System.out.println(context.getBodyAsString());
         messageKey = context.getBodyAsJson().getString("id");
         messageStr = context.getBodyAsString();
-        insertData(messageStr);
         producer = new Producer(KafkaProperties.TOPIC, true, messageStr, messageKey);
         producer.run();
 //        producer = new Producer(KafkaProperties.TOPIC2,false, messageStr, messageKey);
         SparkProducer sparkProducer = new SparkProducer(KafkaProperties.TOPIC2, false,messageStr,messageKey);
         sparkProducer.run();
+        insertData(messageStr);
 //         param = Json.decodeValue(context.getBodyAsString())
 //        System.out.println("context = [" + context.getBodyAsJson().getLong("id") + "]");
 //        System.out.println("context = [" + context.getBodyAsString() + "]");
@@ -105,12 +105,12 @@ public class VertxWeb extends AbstractVerticle{
         consumer = new Consumer(KafkaProperties.TOPIC);
         consumer.run();
 
-        /*vertx.createHttpClient().getNow(9200, "localhost", "/", resp -> {
+        vertx.createHttpClient().getNow(9200, "localhost", "/", resp -> {
             System.out.println("Got response " + resp.statusCode());
             resp.bodyHandler(body -> {
                 System.out.println("Got data " + body.toString("utf-8"));
             });
-        });*/
+        });
     }
 
     public void insertData(String s) {
